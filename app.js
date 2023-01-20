@@ -7,8 +7,8 @@
   const connectRedis = require('connect-redis');
   const errorhandler = require('errorhandler');
 
-  const config = require(__dirname + '/config/config.js')[process.env.NODE_ENV || 'development'];
-
+  //const config = require(__dirname + '/config/config.js')[process.env.NODE_ENV || 'development'];
+  const config = require('./config/config')[process.env.NODE_ENV || 'development'];
 
 function getClientIp(req) { 
   var ipAddress;
