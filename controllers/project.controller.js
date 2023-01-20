@@ -1,9 +1,10 @@
 const db = require( '../database/models' );
 
-const PinataUtils = require('./../routes/utils/pinata')
+const PinataUtils = require('./../routes/utils/pinata');
 const Project =  db['project'];
 const Role =  db['role'];
-const Op = db.Sequelize.Op;
+const License =  db['license'];
+const Token =  db['token'];
 
 exports.create = async  ( req, res ) => 
 {
@@ -22,8 +23,6 @@ exports.create = async  ( req, res ) =>
 
     const bannerImg = bannerIpfsUrl;
     const featuredImg = featuredIpfsUrl;
-   
-    console.log('pppppppppppp', req.body)
 
      const project = {
         userId: userId,
@@ -165,9 +164,15 @@ exports.findOne = async(req, res) =>
 {
     const spaceId = req.query.spaceId;
     const projectId = req.query.projectId;
-        await Project.findOne({ where: {id: projectId, spaceId: spaceId}, include: ["tokens"], include: ["tier"]})
-        .then(data => {
-         const project = JSON.parse(JSON.stringify(data));   
+        await Project.findOne({ where: {id: projectId, spaceId: spaceId}, include: ['stakedtokens', 'tier']})
+        .then(async data => {
+         const project = JSON.parse(JSON.stringify(data));  
+         await License.findByPk(project.tier.licenseId).then( async data => {
+               project.license = data;
+               await Token.findByPk(project.tier.tokenId).then(data => {
+                 project.token = data;
+               })
+         });
           return res.json(project);
         })
         .catch(err => console.log(err)) 
@@ -176,27 +181,28 @@ exports.findOne = async(req, res) =>
 exports.isProjectAdmin = async(req, res) => 
 {
         
-        const address = req.query.address;
-        const projectId = req.query.projectId;
-        await Role.findOne({where: {address: address, mid: projectId, role: 'PROJECT_ADMIN'}})
-        .then(data => {   
-            console.log(data)       
-         if(data){
-            res.json(
-                {
-                    status: true
-                }
-            );
-        } else{
-            res.json(
-                {
-                    status: false
-                }
-            );
-        } 
-            
-        })
-        .catch(err => console.log(err)) 
+        const address = req.query.address ? req.query.address : null;
+        const projectId = req.query.projectId;   
+            await Role.findOne({where: {address: address, mid: projectId, role: 'PROJECT_ADMIN'}})
+            .then(data => {   
+                console.log(data)       
+             if(data){
+                res.json(
+                    {
+                        status: true
+                    }
+                );
+            } else{
+                res.json(
+                    {
+                        status: false
+                    }
+                );
+            } 
+                
+            })
+            .catch(err => console.log(err)) 
+        
 }
 
 exports.setProjectStatus = async (req, res) => { 
@@ -204,9 +210,11 @@ exports.setProjectStatus = async (req, res) => {
     const pid = req.body.pid;
     const statusNote = req.body.statusNote ? req.body.statusNote : null;
     const status = req.body.status;
+    const authored = req.body.authored;
     const project = 
      {
         status: status,
+        authored: authored,
         statusNote: statusNote,
         updatedAt: new Date()
      };

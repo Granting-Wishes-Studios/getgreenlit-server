@@ -4,17 +4,20 @@ const {
 } = require('sequelize');
 const { Sequelize } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class spaceLicense extends Model {
+  class licenseIntro extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsTo(models.space, {
+        foreignKey: 'spaceId',
+        as: 'space',
+      })
     }
   }
-  spaceLicense.init({
+  licenseIntro.init({
     id: {
       allowNull: false,
       type: Sequelize.UUID,
@@ -25,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
     intro: Sequelize.TEXT
   }, {
     sequelize,
-    modelName: 'spaceLicense',
+    modelName: 'licenseIntro',
   });
-  return spaceLicense;
+  return licenseIntro;
 };

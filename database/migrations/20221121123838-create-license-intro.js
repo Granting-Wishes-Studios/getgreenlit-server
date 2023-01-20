@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('spaceLicenses', {
+    await queryInterface.createTable('licenseIntros', {
       id: {
         allowNull: false,
         type: Sequelize.UUID,
@@ -26,6 +26,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('spaceLicenses');
+    await queryInterface.dropTable('licenseIntros');
   }
 };

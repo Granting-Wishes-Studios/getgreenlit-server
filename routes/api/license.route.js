@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require('../utils/auth');
 
 const upload = require('./upload');
 
@@ -15,33 +16,45 @@ module.exports = (app) => {
 
 
   // Add a new token
-  router.post("/add-token",imagesUpload, licenses.addToken);
+  router.post("/add-token",auth.verifyAuth, imagesUpload, licenses.addToken);
+   // Edit token
+  router.post("/edit-token",auth.verifyAuth, imagesUpload, licenses.editToken);
+   // Delete token
+   router.put("/delete-token",auth.verifyAuth, licenses.deleteToken);
 
   // Get all tokens
-  router.get("/get-tokens-licenses", licenses.getTokensAndLicenses);
+  router.get("/get-tokens-licenses", auth.verifyAuth, licenses.getTokensAndLicenses);
 
   // Add a new license
-  router.post("/add-license",imagesUpload, licenses.addLicense);
+  router.post("/add-license",auth.verifyAuth, imagesUpload, licenses.addLicense);
+   // Update license
+   router.post("/edit-license",auth.verifyAuth, imagesUpload, licenses.editLicense);
+  // Delete license
+  router.put("/delete-license",auth.verifyAuth, licenses.deleteLicense);
 
 
-  router.post("/add-license-info", imagesUpload, licenses.addLicenseInfo);
+  router.post("/add-license-info", auth.verifyAuth, imagesUpload, licenses.addLicenseInfo);
 
+  router.get("/get-license", auth.verifyAuth, licenses.getLicense);
 
-  router.post("/add-staking-tier", imagesUpload, licenses.addStakingTier);
+  router.post("/add-staking-tier", auth.verifyAuth, imagesUpload, licenses.addStakingTier);
 
-  router.get("/get-staking-tier", licenses.getStakingTier);
+  router.post("/edit-staking-tier", auth.verifyAuth, imagesUpload, licenses.editStakingTier);
 
-  router.put("/set-staking-tier-status", licenses.setStakingTierStatus);
+  // Delete staking tier
+  router.put("/delete-staking-tier",auth.verifyAuth, licenses.deleteStakingTier);
 
-  router.post("/stake-tokens", licenses.stakeTokens);
+  router.get("/get-staking-tier", auth.verifyAuth, licenses.getStakingTier);
 
-  router.post("/unstake-tokens", licenses.unStakeTokens);
+  router.put("/set-staking-tier-status", auth.verifyAuth, licenses.setStakingTierStatus);
 
-  router.post("/sign-license", licenses.signLicense);
+  router.post("/stake-tokens", auth.verifyAuth, licenses.stakeTokens);
+
+  router.post("/unstake-tokens", auth.verifyAuth, licenses.unStakeTokens);
+
+  router.post("/sign-license", auth.verifyAuth, licenses.signLicense);
   
   
-  
-
   app.use('/api/license', router);
   
 }

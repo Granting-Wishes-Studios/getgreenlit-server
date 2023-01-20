@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('licenseTokens', {
+    await queryInterface.createTable('tokens', {
       id: {
         allowNull: false,
         type: Sequelize.UUID,
@@ -13,6 +13,9 @@ module.exports = {
         type: Sequelize.UUID
       },
       tokenName: {
+        type: Sequelize.STRING
+      },
+      tid: {
         type: Sequelize.STRING
       },
       network: {
@@ -35,6 +38,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('licenseTokens');
+    await queryInterface.dropTable('tokens');
   }
 };

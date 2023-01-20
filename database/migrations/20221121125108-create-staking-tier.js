@@ -12,23 +12,23 @@ module.exports = {
       spaceId: {
         type: Sequelize.UUID
       },
+      tokenId: {
+        type: Sequelize.UUID
+      },
+      licenseId: {
+        type: Sequelize.UUID
+      },
       tierName: {
+        type: Sequelize.STRING
+      },
+      tid: {
         type: Sequelize.STRING
       },
       tierSummary: {
         type: Sequelize.TEXT
       },
-      requiredToken: {
-        type: Sequelize.STRING
-      },
       requiredStake: {
         type: Sequelize.INTEGER
-      },
-      tokenId: {
-        type: Sequelize.STRING
-      },
-      licenseToBeGranted: {
-        type: Sequelize.STRING
       },
       projectCategory: {
         type: Sequelize.STRING

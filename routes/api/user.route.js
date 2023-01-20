@@ -26,12 +26,12 @@ module.exports = (app) => {
 
 
   // Create a new User
-  router.post("/create",imagesUpload, users.create);
+  router.post("/create-login-user", imagesUpload, users.createAndLoginUser);
 
+  // delete user access token
+  router.post("/delete-user-accessToken",imagesUpload, users.deleteUserAccessToken);
   
-  // Create a new User
-  router.get("/get-user", users.getUser);
-  
+
   
   app.use('/api/users', router);
   

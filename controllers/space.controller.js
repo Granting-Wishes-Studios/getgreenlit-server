@@ -4,7 +4,6 @@ const PinataUtils = require('./../routes/utils/pinata')
 const Space =  db['space'];
 const Membership =  db['membership'];
 const Role =  db['role'];
-const Op = db.Sequelize.Op;
 
 exports.create = async  ( req, res ) => 
 {
@@ -82,7 +81,7 @@ exports.create = async  ( req, res ) =>
 
 exports.findAll = async(req, res) => 
 {
-    const userId = req.headers.userid;
+    const userId = req.query.userId?req.query.userId:null;
 
         await Space.findAll({ include: ["members"],
         order: [
@@ -109,7 +108,7 @@ exports.findAll = async(req, res) =>
 exports.findOne = async(req, res) => 
 {  
         const spaceId = req.query.spaceId;
-        await Space.findOne({ where: {id: spaceId}, include: ['tiers']})
+        await Space.findOne({ where: {id: spaceId}, include: ['tiers', 'licenseIntro']})
         .then(async data => {
             const space = JSON.parse(JSON.stringify(data));   
            await  Role.findAll({where: {mid: spaceId}}).then(data => {
@@ -126,17 +125,18 @@ exports.findOne = async(req, res) =>
 exports.role = async(req, res) => 
 {  
         const spaceId = req.query.spaceId;
-        const address = req.query.address;
+        const address = req.query.address?req.query.address:null;
         await Space.findOne({ where: {id: spaceId}})
         .then(async data => {
-            const space = JSON.parse(JSON.stringify(data));   
-               await Role.findOne({where: {mid: spaceId, address: address, role: 'SPACE_ADMIN', status: true}}).then(res => {           
-                if(res){
-                    space.role = res.role
-                }else{
-                    space.role = '' 
-                }
-              })
+            const space = JSON.parse(JSON.stringify(data));          
+                await Role.findOne({where: {mid: spaceId, address: address, role: 'SPACE_ADMIN', status: true}}).then(res => {           
+                    if(res){
+                        space.role = res.role
+                    }else{
+                        space.role = '' 
+                    }
+                  })
+             
             return res.json(space);
          })
         .catch(err => console.log(err)) 
@@ -239,7 +239,7 @@ exports.leave = async(req, res) => {
 
 exports.getMember = async(req, res) => 
 {
-        const userId = req.query.userId;
+        const userId = req.query.userId?req.query.userId:null;
         let membersList = [];
         await Space.findAll({ include: ["members"] })
         .then(data => {
@@ -248,16 +248,18 @@ exports.getMember = async(req, res) =>
                // for space members
                //space.isMember = false  
               const members = space.members
-              members.map(member => {
-                if(member.userId == userId){
-                    const item = {
-                        linkTo: space.id,
-                        linkTitle: space.title,
-                        img: space.logoImg
+              if(userId){
+                members.map(member => {
+                    if(member.userId == userId){
+                        const item = {
+                            linkTo: space.id,
+                            linkTitle: space.title,
+                            img: space.logoImg
+                        }
+                        membersList.push(item)
                     }
-                    membersList.push(item)
-                }
-              })
+                  })
+              }
                      
             });         
             res.json(membersList);
@@ -269,32 +271,33 @@ exports.getMember = async(req, res) =>
 exports.isMember = async(req, res) => 
 {
         
-        const userId = req.query.userId;
+        const userId = req.query.userId?req.query.userId:null;
         const spaceId = req.query.spaceId;
-        await Membership.findOne({where: {userId: userId, spaceId: spaceId}})
-        .then(data => {         
-         if(data){
-            res.json(
-                {
-                    status: true
-                }
-            );
-        } else{
-            res.json(
-                {
-                    status: false
-                }
-            );
-        } 
-            
-        })
-        .catch(err => console.log(err)) 
+            await Membership.findOne({where: {userId: userId, spaceId: spaceId}})
+            .then(data => {         
+             if(data){
+                res.json(
+                    {
+                        status: true
+                    }
+                );
+            } else{
+                res.json(
+                    {
+                        status: false
+                    }
+                );
+            } 
+                
+            })
+            .catch(err => console.log(err)) 
+       
 }
 
 exports.isSpaceAdmin = async(req, res) => 
 {
         
-        const address = req.query.address;
+        const address = req.query.address?req.query.address:null;
         const spaceId = req.query.spaceId;
         await Role.findOne({where: {address: address, mid: spaceId, role: 'SPACE_ADMIN'}})
         .then(data => {         

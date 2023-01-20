@@ -2,7 +2,6 @@ const express = require('express');
 const upload = require('./upload');
 
 const auth = require('../utils/auth');
-const {requireAuth, requireAdmin} = require('./route_middleware');
 
 
 const imagesUpload = upload.fields([{
@@ -26,9 +25,9 @@ module.exports = (app) => {
   var router = express.Router();
 
   // Create a new Space
-  router.post("/create" ,imagesUpload, spaces.create);
+  router.post("/create" ,auth.verifyAuth, imagesUpload, spaces.create);
   // Create a new Space
-  router.post("/update" ,imagesUpload, spaces.update);
+  router.post("/update" ,auth.verifyAuth, imagesUpload, spaces.update);
 
   // get all Space list
   router.get("/", imagesUpload, spaces.findAll);
@@ -37,13 +36,13 @@ module.exports = (app) => {
   // get a single space role for a user
   router.get("/role", spaces.role);
    // remove a space admin role
-   router.get("/remove-role", spaces.removeRole);
+   router.get("/remove-role", auth.verifyAuth, spaces.removeRole);
   
   // Join a new Space
   router.get("/join" , spaces.join);
   
   // Leave a new Space
-  router.get("/leave" , spaces.leave);
+  router.get("/leave" ,auth.verifyAuth, spaces.leave);
 
   // Get Spaces  for a member
   router.get("/get-members" , spaces.getMember);
@@ -54,7 +53,7 @@ module.exports = (app) => {
 
 
   // Get Spaces  intro text
-  router.get("/get-intro" , spaces.getSpaceIntro);
+  router.get("/get-intro" , auth.verifyAuth, spaces.getSpaceIntro);
   
  
   app.use('/api/spaces', router);

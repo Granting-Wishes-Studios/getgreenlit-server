@@ -16,7 +16,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'spaceId',
         as: 'projects',
       });
-  
+      this.hasOne(models.licenseIntro,      
+        {
+          foreignKey: 'spaceId',
+           as: "licenseIntro" 
+        });
       this.belongsTo(models.user, {
         foreignKey: 'userId',
         as: 'owner',
