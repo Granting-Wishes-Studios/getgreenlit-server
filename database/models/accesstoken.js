@@ -2,9 +2,8 @@
 const {
   Model
 } = require('sequelize');
-const { Sequelize } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
-  class licenseToken extends Model {
+  class accessToken extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -14,21 +13,17 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  licenseToken.init({
+  accessToken.init({
     id: {
       allowNull: false,
-      type: Sequelize.UUID,
-      defaultValue: Sequelize.UUIDV4,
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
       primaryKey: true,
     },
-    spaceId: Sequelize.UUID,
-    tokenName: Sequelize.STRING,
-    network: Sequelize.STRING,
-    tokenContractAddress: Sequelize.STRING,
-    tokenDescription: Sequelize.TEXT
+    token: DataTypes.TEXT
   }, {
     sequelize,
-    modelName: 'licenseToken',
+    modelName: 'accessToken',
   });
-  return licenseToken;
+  return accessToken;
 };

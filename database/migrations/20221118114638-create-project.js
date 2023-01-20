@@ -61,6 +61,9 @@ module.exports = {
         type: Sequelize.ENUM("pending", "approved", "rejected", "in-progress", "released", "defunct"),
         defaultValue: "pending",
       },
+      authored: {
+        type: Sequelize.STRING
+      },
       statusNote: {
         type: Sequelize.TEXT
       },

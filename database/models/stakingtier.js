@@ -17,11 +17,21 @@ module.exports = (sequelize, DataTypes) => {
           foreignKey: 'spaceId',
             as: "tiers" 
         });
-      this.hasOne(models.project,      
+      this.hasMany(models.project,      
         {
           foreignKey: 'stakingTierId',
-           as: "tier" 
+           as: "projects" 
         });
+      this.belongsTo(models.token,      
+        {
+            foreignKey: 'tokenId',
+             as: "token" 
+       });
+      this.belongsTo(models.license,      
+      {
+        foreignKey: 'licenseId',
+          as: "license" 
+      });
     }
   }
   stakingTier.init({
@@ -32,12 +42,12 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
     },
     spaceId: Sequelize.UUID,
+    tokenId: Sequelize.UUID,
+    licenseId: Sequelize.UUID,
     tierName: Sequelize.STRING,
+    tid: Sequelize.STRING,
     tierSummary: Sequelize.TEXT,
-    requiredToken: Sequelize.STRING,
     requiredStake: Sequelize.INTEGER,
-    tokenId: Sequelize.STRING,
-    licenseToBeGranted: Sequelize.STRING,
     projectCategory: Sequelize.STRING,
     projectBudgetRange: Sequelize.STRING,
     royalty: Sequelize.STRING,

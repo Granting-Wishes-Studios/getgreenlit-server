@@ -63,7 +63,7 @@ app.use(cors(corsOptions));
 
 app.use(session({
   //store: new RedisStore({ client: redisClient }),
-  secret: 'thisismysecret$%^134',
+  secret:  config.secret,
   resave: false,
   saveUninitialized: true,
   cookie: {

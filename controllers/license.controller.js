@@ -1,19 +1,18 @@
 const db = require( '../database/models' );
-const project = require('../database/models/project');
-const LicenseToken =  db['licenseToken'];
+const Token =  db['token'];
 const License =  db['license'];
-const SpaceLicense =  db['spaceLicense'];
+const LicenseIntro =  db['licenseIntro'];
 const StakedToken =  db['stakedToken'];
 const SignedLicense =  db['signedLicense'];
 const StakingTier =  db['stakingTier'];
 const Project =  db['project'];
 const PinataUtils = require('./../routes/utils/pinata')
-
-const Op = db.Sequelize.Op;
+const uuidParse = require('uuid-parse');
 
 exports.addToken = async ( req, res ) => 
 {
     const spaceId = req.body.spaceId;
+    const tokenId = req.body.tokenId;
     const tokenName = req.body.tokenName;
     const network = req.body.network;
     const contractAddress = req.body.contractAddress;
@@ -21,12 +20,13 @@ exports.addToken = async ( req, res ) =>
     // Add a new token
     const token = {
         spaceId: spaceId,
+        tid: tokenId,
         tokenName: tokenName,
         network: network,
         tokenContractAddress: contractAddress,
         tokenDescription: description,
     }
-     await LicenseToken.create(token)
+     await Token.create(token)
     .then( data => { 
         res.send({
             data,
@@ -36,26 +36,80 @@ exports.addToken = async ( req, res ) =>
     .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while adding the token"})})
 }
 
+exports.editToken = async ( req, res ) => 
+{
+    const id = req.body.id;
+    const tokenId = req.body.tokenId;
+    const tokenName = req.body.tokenName;
+    const network = req.body.network;
+    const contractAddress = req.body.contractAddress;
+    const description = req.body.description;
+    // update the token
+    const token = {
+        tokenId: tokenId,
+        tokenName: tokenName,
+        network: network,
+        tokenContractAddress: contractAddress,
+        tokenDescription: description,
+    }
+    await Token.update(token, {where: {id: id}}).then(num=>{
+        if(num == 1){
+          res.send({
+            status: true
+          }); 
+        }else{
+            res.send({
+                status: false
+              });   
+        }
+    })
+    .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while updating the token"})})
+}
+
+exports.deleteToken = async ( req, res ) => 
+{
+    const id = req.body.params.id;
+    const spaceId = req.body.params.spaceId;
+    const condition = 
+    {
+       id: id,
+       spaceId: spaceId
+    };
+    await Token.destroy({where: condition})
+    .then(num=>{
+        if(num == 1){
+          res.send({
+            status: true
+          }); 
+        }else{
+            res.send({
+                status: false
+              });   
+        }
+    })
+    .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while deleting the token"})})
+}
+
 exports.getTokensAndLicenses = async(req, res) => 
 {
        let tokensLicenses = {}
         const spaceId = req.query.spaceId;
-        await LicenseToken.findAll({where: {spaceId: spaceId}, order: [
-            ["id", "DESC"],
-          ]})
+        await Token.findAll({where: {spaceId: spaceId}, order: [
+            ["id", "DESC"]
+          ], include: ['tokentiers']})
         .then(async data => {
          const tokensData = JSON.parse(JSON.stringify(data)); 
          tokensLicenses.tokens = tokensData;
            await License.findAll({where: {spaceId: spaceId}, order: [
             ["id", "DESC"],
-          ]})
+          ], include: ['licensetiers']})
           .then(data => {
            const licenseData = JSON.parse(JSON.stringify(data)); 
             tokensLicenses.licenses = licenseData;
           })
           .catch(err => console.log(err)) 
           
-          await SpaceLicense.findOne({where: {spaceId: spaceId}})
+          await LicenseIntro.findOne({where: {spaceId: spaceId}})
           .then(data => {
            const licenseIntro = JSON.parse(JSON.stringify(data)); 
             tokensLicenses.licenseIntro = licenseIntro;
@@ -95,6 +149,87 @@ exports.addLicense = async ( req, res ) =>
     .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while adding the license"})})
 }
 
+exports.editLicense = async ( req, res ) => 
+{
+
+    let licenseFileUrl;
+    if(req.files['licenseFile']){
+        licenseFileUrl = await PinataUtils.saveImagePinata(req.files['licenseFile'][0], 'licenseFile')
+    }
+    const id = req.body.id;
+    const licenseName = req.body.licenseName;
+    const licenseSummary = req.body.licenseSummary;
+    const licenseFile = licenseFileUrl;
+    const licenseFileName = req.body.licenseFileName;
+   
+    let license;
+    if(!req.files['licenseFile']){
+        license  = {
+            licenseName: licenseName,
+            licenseSummary: licenseSummary,
+        }
+    }else{
+        license  = {
+            licenseName: licenseName,
+            licenseSummary: licenseSummary,
+            licenseFile: licenseFile,
+            licenseFileName: licenseFileName
+        }  
+    }
+     await License.update(license, {
+        where:{ id: id}
+    })
+    .then( num => { 
+        if(num == 1){
+            res.send({
+              status: true
+            }); 
+          }else{
+              res.send({
+                  status: false
+                });   
+          }
+    })
+    .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while updating the license"})})
+}
+
+exports.deleteLicense = async ( req, res ) => 
+{
+    const id = req.body.params.id;
+    const spaceId = req.body.params.spaceId;
+    const condition = 
+    {
+       id: id,
+       spaceId: spaceId
+    };
+    await License.destroy({where: condition})
+    .then(num=>{
+        if(num == 1){
+          res.send({
+            status: true
+          }); 
+        }else{
+            res.send({
+                status: false
+              });   
+        }
+    })
+    .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while deleting the license"})})
+}
+
+
+
+exports.getLicense = async(req, res) => 
+{
+    const licenseId = req.query.licenseId;
+        await License.findByPk(licenseId)
+        .then(data => {
+         const license = JSON.parse(JSON.stringify(data));     
+          return res.json(license);
+        })
+        .catch(err => console.log(err)) 
+}
+
 exports.addLicenseInfo = async ( req, res ) => 
 {
     const spaceId = req.body.spaceId;
@@ -104,12 +239,12 @@ exports.addLicenseInfo = async ( req, res ) =>
         spaceId: spaceId,
         intro: licenseIntro,
     }
-      await SpaceLicense.findOne({where: {spaceId: spaceId}}).then(async data => {
+      await LicenseIntro.findOne({where: {spaceId: spaceId}}).then(async data => {
         if(data){
             const licenseIntroData = {
                 intro: licenseIntro,
             }
-            await SpaceLicense.update(licenseIntroData, {where: {spaceId: spaceId}}).then(num=>{
+            await LicenseIntro.update(licenseIntroData, {where: {spaceId: spaceId}}).then(num=>{
                 if(num == 1){
                   res.send({
                     status: true
@@ -121,7 +256,7 @@ exports.addLicenseInfo = async ( req, res ) =>
                 }
             })
         }else{
-            await SpaceLicense.create(licenseIntroData)
+            await LicenseIntro.create(licenseIntroData)
             .then( data => { 
                 res.send({
                     data,
@@ -137,25 +272,25 @@ exports.addLicenseInfo = async ( req, res ) =>
 
 exports.addStakingTier  = async ( req, res ) =>  {
     const spaceId = req.body.spaceId;
+    const requiredToken = req.body.requiredToken
+    const licenseId = req.body.licenseId
     const tierName= req.body.tierName;
+    const tid = req.body.tokenId;
     const tierSummary= req.body.tierSummary
-    const requiredToken= req.body.requiredToken
     const requiredStake= parseInt(req.body.requiredStake)
-    const tokenId= req.body.tokenId
-    const licenseToBeGranted= req.body.licenseToBeGranted
     const projectCategory= req.body.projectCategory
     const projectBudgetRange= req.body.projectBudgetRange
     const royalty= req.body.royalty;
-    const adminApproval= req.body.adminApproval;
+    const adminApproval= req.body.adminApproval==='true'?true:false;
     // Add a new staking tier
     const stakingTier = {
         spaceId: spaceId,
         tierName: tierName,
+        tid: tid,
         tierSummary: tierSummary,
-        requiredToken: requiredToken,
+        tokenId: requiredToken,
+        licenseId: licenseId,
         requiredStake: requiredStake,
-        tokenId: tokenId,
-        licenseToBeGranted: licenseToBeGranted,
         projectCategory: projectCategory,
         projectBudgetRange: projectBudgetRange,
         royalty: royalty,
@@ -171,12 +306,77 @@ exports.addStakingTier  = async ( req, res ) =>  {
     .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while adding the staking tier"})})
 }
 
+exports.editStakingTier  = async ( req, res ) =>  {
+    const id = req.body.id;
+    const requiredToken = req.body.requiredToken
+    const licenseId = req.body.licenseId
+    const tierName= req.body.tierName;
+    const tid= req.body.tokenId;
+    const tierSummary= req.body.tierSummary
+    const requiredStake= parseInt(req.body.requiredStake)
+    const projectCategory= req.body.projectCategory
+    const projectBudgetRange= req.body.projectBudgetRange
+    const royalty= req.body.royalty;
+    const adminApproval= req.body.adminApproval==='true'?true:false;
+    // edit staking tier
+    const stakingTier = {
+        tierName: tierName,
+        tid: tid,
+        tierSummary: tierSummary,
+        tokenId: requiredToken,
+        licenseId: licenseId,
+        requiredStake: requiredStake,
+        projectCategory: projectCategory,
+        projectBudgetRange: projectBudgetRange,
+        royalty: royalty,
+        adminApproval: adminApproval
+    }
+     await StakingTier.update(stakingTier, {where: {id: id}})
+    .then( num => { 
+        if(num == 1){
+            res.send({
+              status: true
+            }); 
+          }else{
+              res.send({
+                  status: false
+                });   
+          }
+    })
+    .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while updating the staking tier"})})
+}
+
+exports.deleteStakingTier = async ( req, res ) => 
+{
+    const id = req.body.params.id;
+    const spaceId = req.body.params.spaceId;
+    const condition = 
+    {
+       id: id,
+       spaceId: spaceId
+    };
+    await StakingTier.destroy({where: condition})
+    .then(num=>{
+        if(num == 1){
+          res.send({
+            status: true
+          }); 
+        }else{
+            res.send({
+                status: false
+              });   
+        }
+    })
+    .catch( err =>{ res.status(400).send({message: err.message || "Some error occurred while deleting the staking tier"})})
+}
+
+
 exports.getStakingTier = async(req, res) => 
 {
         const spaceId = req.query.spaceId;
         await StakingTier.findAll({where: {spaceId: spaceId}, order: [
             ["id", "DESC"],
-          ]})
+          ], include: ['token', 'license', 'projects']})
         .then(data => {
          const stakingTier = JSON.parse(JSON.stringify(data)); 
            return res.json(stakingTier);

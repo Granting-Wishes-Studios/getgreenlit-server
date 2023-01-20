@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasOne(models.stakedToken,      
         {
           foreignKey: 'pid',
-           as: "tokens" 
+           as: "stakedtokens" 
         });
       this.belongsTo(models.stakingTier,      
         {
@@ -65,6 +65,7 @@ module.exports = (sequelize, DataTypes) => {
       type: Sequelize.ENUM,
       values: ["pending", "approved", "rejected", "in-progress", "released", "defunct"]
     },
+    authored: Sequelize.STRING,
     statusNote: Sequelize.TEXT,
     staked: Sequelize.BOOLEAN,
     signed: Sequelize.BOOLEAN,

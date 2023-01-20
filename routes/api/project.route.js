@@ -2,7 +2,6 @@ const express = require('express');
 const upload = require('./upload');
 
 const auth = require('../utils/auth');
-const {requireAuth, requireAdmin} = require('./route_middleware');
 
 
 const imagesUpload = upload.fields([
@@ -23,9 +22,9 @@ module.exports = (app) => {
   var router = express.Router();
 
   // Create a new Project
-  router.post("/create" ,imagesUpload, project.create);
+  router.post("/create", auth.verifyAuth, imagesUpload, project.create);
 // Edit  Project
-  router.post("/edit" ,imagesUpload, project.update);
+  router.post("/edit" ,auth.verifyAuth, imagesUpload, project.update);
 
 // get all Project list
    router.get("/", project.findAll);
@@ -34,9 +33,8 @@ module.exports = (app) => {
 
    router.get("/is-admin", project.isProjectAdmin);
 
-   router.post("/set-project-status", project.setProjectStatus);
-   
-  
-  
+   router.post("/set-project-status", auth.verifyAuth, project.setProjectStatus);
+
+
    app.use('/api/projects', router);
 }
